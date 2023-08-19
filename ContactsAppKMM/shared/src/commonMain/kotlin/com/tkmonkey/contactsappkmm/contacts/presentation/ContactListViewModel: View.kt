@@ -21,17 +21,39 @@ class ContactListViewModel : ViewModel() {
 		private set
 
 	fun onEvent(event: ContactListEvent) {
-		
+
 	}
 }
 
 private val contacts = (1..50).map {
 	Contact(
 		id = it.toLong(),
-		firstName = "First $it",
-		lastName = "Last $it",
+		firstName = randomName(),
+		lastName = randomLastName(),
 		phoneNumber = "1234567890",
 		email = "$it@dummy",
 		photosByte = null
 	)
+}
+
+private fun randomName(): String {
+	val firstNameList = listOf("Alice", "Bob", "Charlie", "David", "Emma", "Frank", "Grace", "Hannah", "Isaac", "Jessica")
+
+
+	val randomFirstName = firstNameList.random()
+
+
+	return "$randomFirstName "
+
+}
+
+private fun randomLastName(): String {
+
+	val lastNameList = listOf("Smith", "Johnson", "Williams", "Jones", "Brown", "Davis", "Miller", "Wilson", "Moore", "Taylor")
+
+
+	val randomLastName = lastNameList.random()
+
+	return " $randomLastName"
+
 }
