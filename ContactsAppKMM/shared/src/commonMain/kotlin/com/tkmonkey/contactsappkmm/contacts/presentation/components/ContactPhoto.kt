@@ -17,7 +17,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-
 import com.tkmonkey.contactsappkmm.contacts.domain.Contact
 import com.tkmonkey.contactsappkmm.core.presentation.rememberBitmapFromBytes
 
@@ -27,6 +26,7 @@ fun ContactPhoto(
 	modifier: Modifier = Modifier,
 	iconSize: Dp = 25.dp
 ) {
+	
 	val bitmap = rememberBitmapFromBytes(contact?.photosByte)
 	val photoModifier = modifier.clip(RoundedCornerShape(35))
 	if (bitmap != null) {
