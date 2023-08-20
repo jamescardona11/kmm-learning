@@ -6,5 +6,5 @@ data class Contact(
 	val lastName: String,
 	val email: String,
 	val phoneNumber: String,
-	val photosByte: ByteArray?
+	val photoBytes: ByteArray?
 )

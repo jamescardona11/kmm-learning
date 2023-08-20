@@ -4,56 +4,185 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.tkmonkey.contactsappkmm.contacts.domain.Contact
+import com.tkmonkey.contactsappkmm.contacts.domain.ContactDataSource
+import com.tkmonkey.contactsappkmm.contacts.domain.ContactValidator
 import dev.icerock.moko.mvvm.viewmodel.ViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class ContactListViewModel : ViewModel() {
+class ContactListViewModel(
+	private val contactDataSource: ContactDataSource
+) : ViewModel() {
 
-	private val _state: MutableStateFlow<ContactListState> = MutableStateFlow(
-		ContactListState(
-			contacts = contacts
-		)
-	)
-	val state = _state.asStateFlow()
+	private val _state: MutableStateFlow<ContactListState> = MutableStateFlow(ContactListState())
+	val state = combine(
+		_state,
+		contactDataSource.getContacts(),
+		contactDataSource.getRecentContacts(20)
+	) { state, contacts, recentContacts ->
+		state.copy(
+			contacts = contacts,
+			recentlyAddedContacts = recentContacts,
+
+			)
+	}.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), ContactListState())
+
 
 	var newContact: Contact? by mutableStateOf(null)
 		private set
 
 	fun onEvent(event: ContactListEvent) {
+		when (event) {
+			ContactListEvent.DeleteContact -> {
+				viewModelScope.launch {
+					_state.value.selectedContact?.id?.let { id ->
+						_state.update {
+							it.copy(isSelectedContactSheetOpen = false)
+						}
+						contactDataSource.deleteContact(id)
+						delay(300L)
+						_state.update {
+							it.copy(selectedContact = null)
+						}
+					}
+				}
+			}
 
+			ContactListEvent.DismissContact -> {
+				viewModelScope.launch {
+					_state.update {
+						it.copy(
+							isSelectedContactSheetOpen = false,
+							isAddContactSheetOpen = false,
+							firstNameError = null,
+							lastNameError = null,
+							emailError = null,
+							phoneNumberError = null,
+						)
+
+					}
+					delay(300L)
+					newContact = null
+					_state.update {
+						it.copy(selectedContact = null)
+					}
+				}
+			}
+
+			is ContactListEvent.EditContact -> {
+				_state.update {
+					it.copy(
+						selectedContact = null,
+						isAddContactSheetOpen = true,
+						isSelectedContactSheetOpen = false
+					)
+				}
+				newContact = event.contact
+			}
+
+			ContactListEvent.OnAddNewContactClick -> {
+				_state.update {
+					it.copy(
+						isAddContactSheetOpen = true
+					)
+				}
+				newContact = Contact(
+					id = null,
+					firstName = "",
+					lastName = "",
+					email = "",
+					phoneNumber = "",
+					photoBytes = null
+				)
+			}
+
+			ContactListEvent.OnAddPhotoClicked -> {
+
+			}
+
+			is ContactListEvent.OnEmailChange -> {
+				newContact = newContact?.copy(
+					email = event.email
+				)
+
+			}
+
+			is ContactListEvent.OnFirstNameChange -> {
+				newContact = newContact?.copy(
+					firstName = event.firstName
+				)
+			}
+
+			is ContactListEvent.OnLastNameChange -> {
+				newContact = newContact?.copy(
+					lastName = event.lastName
+				)
+			}
+
+			is ContactListEvent.OnPhoneNumberChange -> {
+				newContact = newContact?.copy(
+					phoneNumber = event.phoneNumber
+				)
+			}
+
+			is ContactListEvent.OnPhotoPicked -> {
+				newContact = newContact?.copy(
+					photoBytes = event.bytes
+				)
+			}
+
+			ContactListEvent.SaveContact -> {
+				newContact?.let { contact ->
+					val result = ContactValidator.validateContact(contact)
+					val errors = listOfNotNull(
+						result.firstNameError,
+						result.lastNameError,
+						result.emailError,
+						result.phoneNumberError
+					)
+
+					if (errors.isEmpty()) {
+						_state.update {
+							it.copy(
+								isAddContactSheetOpen = false,
+								firstNameError = null,
+								lastNameError = null,
+								emailError = null,
+								phoneNumberError = null
+							)
+						}
+						viewModelScope.launch {
+							contactDataSource.insertContact(contact)
+							delay(300L) // Animation delay
+							newContact = null
+						}
+					} else {
+						_state.update {
+							it.copy(
+								firstNameError = result.firstNameError,
+								lastNameError = result.lastNameError,
+								emailError = result.emailError,
+								phoneNumberError = result.phoneNumberError
+							)
+						}
+					}
+				}
+			}
+
+			is ContactListEvent.SelectContact -> {
+				_state.update {
+					it.copy(
+						selectedContact = event.contact,
+						isSelectedContactSheetOpen = true
+					)
+				}
+			}
+		}
 	}
 }
 
-private val contacts = (1..50).map {
-	Contact(
-		id = it.toLong(),
-		firstName = randomName(),
-		lastName = randomLastName(),
-		phoneNumber = "1234567890",
-		email = "$it@dummy",
-		photosByte = null
-	)
-}
-
-private fun randomName(): String {
-	val firstNameList = listOf("Alice", "Bob", "Charlie", "David", "Emma", "Frank", "Grace", "Hannah", "Isaac", "Jessica")
-
-
-	val randomFirstName = firstNameList.random()
-
-
-	return "$randomFirstName "
-
-}
-
-private fun randomLastName(): String {
-
-	val lastNameList = listOf("Smith", "Johnson", "Williams", "Jones", "Brown", "Davis", "Miller", "Wilson", "Moore", "Taylor")
-
-
-	val randomLastName = lastNameList.random()
-
-	return " $randomLastName"
-
-}

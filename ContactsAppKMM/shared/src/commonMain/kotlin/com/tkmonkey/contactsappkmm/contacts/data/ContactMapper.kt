@@ -10,6 +10,6 @@ fun ContactEntity.toContact(): Contact {
 		lastName = lastName,
 		email = email,
 		phoneNumber = phoneNumber,
-		photosByte = null // TODO
+		photoBytes = null // TODO
 	)
 }

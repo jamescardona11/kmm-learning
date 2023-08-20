@@ -26,8 +26,8 @@ fun ContactPhoto(
 	modifier: Modifier = Modifier,
 	iconSize: Dp = 25.dp
 ) {
-	
-	val bitmap = rememberBitmapFromBytes(contact?.photosByte)
+
+	val bitmap = rememberBitmapFromBytes(contact?.photoBytes)
 	val photoModifier = modifier.clip(RoundedCornerShape(35))
 	if (bitmap != null) {
 		Image(
