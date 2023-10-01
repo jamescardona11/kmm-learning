@@ -1,7 +1,7 @@
-//package com.tkmonkey.contactsappkmm.core.data
-//
-//import app.cash.sqldelight.db.SqlDriver
-//
-//expect class DriverFactory {
-//	fun createDriver(): SqlDriver
-//}
+package com.tkmonkey.contactsappkmm.core.data
+
+import app.cash.sqldelight.db.SqlDriver
+
+expect class DriverFactory {
+	fun createDriver(): SqlDriver
+}

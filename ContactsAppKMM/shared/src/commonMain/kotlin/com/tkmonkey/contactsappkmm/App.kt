@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import com.tkmonkey.contactsappkmm.contacts.presentation.ContactListScreen
 import com.tkmonkey.contactsappkmm.contacts.presentation.ContactListViewModel
 import com.tkmonkey.contactsappkmm.core.presentation.ContactsTheme
+import com.tkmonkey.contactsappkmm.di.AppModule
 import dev.icerock.moko.mvvm.compose.getViewModel
 import dev.icerock.moko.mvvm.compose.viewModelFactory
 
@@ -17,15 +18,21 @@ import dev.icerock.moko.mvvm.compose.viewModelFactory
 fun App(
 	darkTheme: Boolean,
 	dynamicColor: Boolean,
+	appModule: AppModule,
 ) {
 	ContactsTheme(
 		darkTheme = darkTheme,
 		dynamicColor = dynamicColor
 	) {
 
+
 		val viewModel = getViewModel(
 			key = "ContactListScreen",
-			factory = viewModelFactory { ContactListViewModel() }
+			factory = viewModelFactory {
+				ContactListViewModel(
+					appModule.contactDataSource
+				)
+			}
 		)
 		val state by viewModel.state.collectAsState()
 		Surface(
