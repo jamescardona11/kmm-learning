@@ -105,26 +105,26 @@ class ContactListViewModel(
 
 			}
 
-			is ContactListEvent.OnEmailChange -> {
+			is ContactListEvent.OnEmailChanged -> {
 				newContact = newContact?.copy(
 					email = event.email
 				)
 
 			}
 
-			is ContactListEvent.OnFirstNameChange -> {
+			is ContactListEvent.OnFirstNameChanged -> {
 				newContact = newContact?.copy(
 					firstName = event.firstName
 				)
 			}
 
-			is ContactListEvent.OnLastNameChange -> {
+			is ContactListEvent.OnLastNameChanged -> {
 				newContact = newContact?.copy(
 					lastName = event.lastName
 				)
 			}
 
-			is ContactListEvent.OnPhoneNumberChange -> {
+			is ContactListEvent.OnPhoneNumberChanged -> {
 				newContact = newContact?.copy(
 					phoneNumber = event.phoneNumber
 				)
